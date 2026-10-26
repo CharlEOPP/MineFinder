@@ -1,0 +1,25 @@
+# Ward / Gold Hill / Caribou mining district, west of Boulder.
+# All coordinates are EPSG:26913 (NAD83 / UTM 13N), metres.
+name: ward_goldhill_caribou
+crs: EPSG:26913
+
+# Box spanning roughly Caribou (SW) to Gold Hill / Ward (NE).
+extent:
+  minx: 447000
+  miny: 4422000
+  maxx: 468500
+  maxy: 4441500
+
+# Spatial test block: Caribou corner. Never used for training or tuning.
+holdout:
+  minx: 447000
+  miny: 4422000
+  maxx: 455000
+  maxy: 4429000
+
+# Gap around the holdout where nothing is used (train or test).
+# Must be >= the largest chip size + context window used later (Phase 3/4).
+holdout_buffer_m: 256
+
+labels:
+  dedupe_m: 50

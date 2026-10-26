@@ -1,0 +1,11 @@
+data/raw/*
+data/interim/*
+data/processed/*
+!data/*/.gitkeep
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+# candidate outputs can contain exact coordinates: never commit them
+outputs/
+*.qgz~
