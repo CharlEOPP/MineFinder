@@ -25,11 +25,12 @@ A decision is never silently changed. If we change one, the old file gets a "Sup
 | [0004](decisions/0004-label-merge-and-dedupe.md) | Merge label sources greedily by priority, deduping only across sources | 1 |
 | [0005](decisions/0005-repo-layout-and-what-never-gets-committed.md) | Use a src-layout package, keep data out of git, and keep candidate coordinates private | 0 |
 | [0006](decisions/0006-label-sources-and-loader-cleaning.md) | Pick specific label sources, and clean each one's quirks before merging | 1 |
+| [0007](decisions/0007-dem-acquisition-and-mosaic.md) | Get the DEM from the TNM API, and mosaic newest survey first without ever resampling | 1 |
 
 ## Phase tracker
 
 | Phase | Status |
 |-------|--------|
 | 0: setup | ✅ done: env, repo, AOI config, test suite |
-| 1: labels + AOI | 🟡 labels done: 1,370 merged labels in `data/interim/labels.gpkg`. DEM tiles and the QGIS overlay check are still to do |
+| 1: labels + DEM | 🟡 labels done (1,370 in `data/interim/labels.gpkg`). DEM code written and tested; still to do: first real download, then the QGIS overlay check (steps in 0007) |
 | 2–6 | not started |

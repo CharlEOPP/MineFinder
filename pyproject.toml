@@ -12,11 +12,15 @@ dependencies = [
   "shapely>=2.0",
   "pyproj>=3.6",
   "pyyaml>=6",
+  # Install these two with mamba first (conda-forge), so pip sees them as satisfied
+  # and never pulls a pip rasterio wheel with its own copy of GDAL. See decision 0001.
+  "rasterio>=1.4",
+  "requests>=2.31",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
-raster = ["rasterio>=1.3", "whitebox", "richdem"]
+raster = ["whitebox", "richdem"]
 ml = ["torch", "torchgeo", "segmentation-models-pytorch"]
 
 [tool.setuptools.packages.find]

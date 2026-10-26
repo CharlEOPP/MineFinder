@@ -29,6 +29,10 @@ conda-forge builds all of these together, against one shared copy of each C libr
 - **QGIS gets installed separately** with its standalone Windows installer, not from conda. It's a desktop app, and its conda package drags in a lot of dependencies and tends to conflict with the rest.
 - **Activate with `conda activate`, install with `mamba install`.** `mamba activate` needs extra shell setup that Miniforge's `conda init` already covers.
 
+## Update (Phase 1, DEM)
+
+`rasterio` and `requests` are now core dependencies, because `acquire/dem.py` needs them. Install them with **mamba first** (`mamba install -c conda-forge rasterio requests`), then `pip install -e ".[dev]"`. Done in that order, pip sees them as already installed and won't pull a pip rasterio wheel that carries its own GDAL. The `qgis` line was removed from `environment.yml`: QGIS is installed separately, as noted above.
+
 ## Where it lives
 
 `environment.yml`, `pyproject.toml`, `.vscode/settings.json` (which tells VS Code to use conda).

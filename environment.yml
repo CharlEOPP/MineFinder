@@ -8,16 +8,16 @@ dependencies:
   - gdal>=3.8
   - pdal>=2.7
   - python-pdal
-  - rasterio>=1.3
+  - rasterio>=1.4
   - geopandas>=1.0
   - shapely>=2.0
   - pyproj>=3.6
   - pyyaml
+  - requests
   - whitebox            # WhiteboxTools Python frontend (downloads the binary on first use)
   - richdem
   - pytorch             # Phase 4; CPU build is fine for chips at AOI scale
   - torchgeo
   - segmentation-models-pytorch
-  - qgis                # optional, for Phase 1 "known mines plot over DEM" check
   - pytest
   - pip
