@@ -227,3 +227,33 @@ def test_mosaic_refuses_misaligned_grid(tmp_path, small_aoi):
     a = write_tile(tmp_path / "a.tif", X0 + 0.5, Y0 + 100.5, 100, 100, 2000.0)
     with pytest.raises(ValueError, match="grid"):
         mosaic([a], small_aoi, tmp_path / "dem.tif")
+
+
+# ---------------- provenance + overviews (Phase 2) ----------------
+
+def test_mosaic_writes_source_raster_naming_the_winning_tile(tmp_path, small_aoi):
+    # Which survey each pixel came from: seams are then known exactly (decision 0009).
+    new = write_tile(tmp_path / "new.tif", X0, Y0 + 100, 100, 100, 2000.0, hole=(slice(0, 10), slice(0, 10)))
+    old = write_tile(tmp_path / "old.tif", X0, Y0 + 100, 100, 100, 1999.0)
+    out = mosaic([new, old], small_aoi, tmp_path / "dem.tif")
+    src_path = out.with_name("dem_source.tif")
+    with rasterio.open(src_path) as s:
+        src = s.read(1)
+        assert s.dtypes[0] == "uint8"
+    assert (src[:10, :10] == 2).all()          # 1-based index into the tile list: old.tif
+    assert (src[10:, :] == 1).all()             # new.tif
+    table = (out.with_name("dem_source.csv")).read_text()
+    assert "1,new.tif" in table and "2,old.tif" in table
+
+
+def test_mosaic_source_is_zero_where_no_data(tmp_path, small_aoi):
+    half = write_tile(tmp_path / "half.tif", X0, Y0 + 100, 50, 100, 2000.0)
+    out = mosaic([half], small_aoi, tmp_path / "dem.tif")
+    with rasterio.open(out.with_name("dem_source.tif")) as s:
+        assert (s.read(1)[:, 50:] == 0).all()
+
+
+def test_mosaic_builds_overviews(tmp_path, small_aoi):
+    a = write_tile(tmp_path / "a.tif", X0, Y0 + 100, 100, 100, 2000.0)
+    with rasterio.open(mosaic([a], small_aoi, tmp_path / "dem.tif")) as ds:
+        assert ds.overviews(1)                  # pyramids, so QGIS draws fast zoomed out

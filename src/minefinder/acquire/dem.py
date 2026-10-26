@@ -16,6 +16,7 @@ from typing import Callable, Iterable
 import numpy as np
 import rasterio
 from pyproj import CRS
+from rasterio.enums import Resampling
 from rasterio.warp import transform_bounds
 from rasterio.windows import Window, from_bounds
 
@@ -170,7 +171,14 @@ def _check_tile(src: rasterio.DatasetReader, aoi: AOI) -> None:
 
 def mosaic(paths: list[str | Path], aoi: AOI, out_path: str | Path) -> Path:
     """Mosaic tiles onto the AOI's 1 m grid. `paths` must be in priority order
-    (newest first): earlier tiles win, later ones only fill nodata gaps."""
+    (newest first): earlier tiles win, later ones only fill nodata gaps.
+
+    Also writes, next to the DEM:
+      dem_source.tif  uint8: which tile each pixel came from (1-based index; 0 = no data)
+      dem_source.csv  index,filename: so seams between surveys are known exactly (0009)
+    """
+    if len(paths) > 255:
+        raise ValueError("more than 255 tiles: source raster is uint8")
     minx, miny, maxx, maxy = aoi.extent.bounds
     width, height = int(round(maxx - minx)), int(round(maxy - miny))
     transform = rasterio.transform.from_origin(minx, maxy, 1.0, 1.0)
@@ -188,13 +196,16 @@ def mosaic(paths: list[str | Path], aoi: AOI, out_path: str | Path) -> Path:
             tiled=True, blockxsize=512, blockysize=512,
             compress="deflate", predictor=3, BIGTIFF="IF_SAFER",
         )
-        with rasterio.open(out_path, "w", **profile) as dst:
+        src_path = out_path.with_name("dem_source.tif")
+        src_profile = {**profile, "dtype": "uint8", "nodata": 0, "predictor": 2}
+        with rasterio.open(out_path, "w", **profile) as dst, rasterio.open(src_path, "w", **src_profile) as sdst:
             for row in range(0, height, BLOCK):
                 for col in range(0, width, BLOCK):
                     win = Window(col, row, min(BLOCK, width - col), min(BLOCK, height - row))
                     wb = rasterio.windows.bounds(win, transform)
                     block = np.full((int(win.height), int(win.width)), NODATA, dtype="float32")
-                    for s in srcs:
+                    who = np.zeros(block.shape, dtype="uint8")
+                    for k, s in enumerate(srcs, 1):
                         if s.bounds.left >= wb[2] or s.bounds.right <= wb[0] or \
                            s.bounds.bottom >= wb[3] or s.bounds.top <= wb[1]:
                             continue
@@ -205,12 +216,23 @@ def mosaic(paths: list[str | Path], aoi: AOI, out_path: str | Path) -> Path:
                             valid &= z != np.float32(s.nodata)
                         fill = (block == NODATA) & valid
                         block[fill] = z[fill]
+                        who[fill] = k
                         if not (block == NODATA).any():
                             break  # block fully covered by higher-priority tiles
                     dst.write(block, 1, window=win)
+                    sdst.write(who, 1, window=win)
     finally:
         for s in srcs:
             s.close()
+
+    out_path.with_name("dem_source.csv").write_text(
+        "index,filename\n" + "".join(f"{k},{Path(p).name}\n" for k, p in enumerate(paths, 1))
+    )
+    # Pyramids: QGIS (and anything else) can draw the big mosaic quickly when zoomed out.
+    with rasterio.open(out_path, "r+") as d:
+        d.build_overviews([2, 4, 8, 16, 32], Resampling.average)
+    with rasterio.open(src_path, "r+") as d:
+        d.build_overviews([2, 4, 8, 16, 32], Resampling.nearest)
     return out_path
 
 

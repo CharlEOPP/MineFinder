@@ -44,6 +44,23 @@
 
 **No group has a significant offset**, which confirms the Phase 1 "no CRS or datum error" result. CGS shaft/pit labels don't sit on pits any more often than random points do. That's consistent with the GPS-era location error discussed in [0006](0006-label-sources-and-loader-cleaning.md). One tile has too few USMIN labels to report. The full-mosaic run will fix that.
 
+## Full-mosaic result (train split, 2026-10-26)
+
+| Group | n | Score at label | Random | p at label | Best shift | p best shift |
+|---|---|---|---|---|---|---|
+| USMIN pit-like | 155 | 0.54 m | 0.40 | 0.007 | (−34, +31) | 0.91 |
+| USMIN adit | 106 | 1.20 m | 0.40 | < 0.001 | — | — |
+| USMIN other | 20 | 0.97 m | 0.40 | 0.001 | — | — |
+| CGS pit-like | 157 | 0.22 m | 0.40 | 1.00 | (−37, −40) | 0.96 |
+| CGS adit | 212 | 0.58 m | 0.40 | < 0.001 | — | — |
+| CGS dump | 45 | 0.38 m | 0.45 | 0.68 | (−36, −10) | 0.75 |
+| MRDS other | 357 | 0.59 m | 0.40 | < 0.001 | — | — |
+
+- **There's no systematic offset in any group** (every p_best_shift ≥ 0.75). CRS and datum are confirmed on about 1,100 labels.
+- **USMIN adits sit on clear notches**, at 3× the random relief. USMIN pits are better than random but often a few metres off a pit.
+- **CGS pits are worse than random** (p = 1.00). Either the 1990s GPS error is large compared to pit size, or many have been backfilled, or both. CGS adits are fine.
+- **Decision: snap labels later, not now.** Snapping should pick "the pit" or "the notch", which needs the Phase 2 derivatives and a feature-specific score. It becomes part of building training targets in Phase 3, with its radius chosen from these numbers on the train split.
+
 ## Where it lives
 
 - `src/minefinder/terrain/derivatives.py`: `local_relief`, `pit_depth` (numpy only, with integral-image box means)

@@ -27,6 +27,7 @@ A decision is never silently changed. If we change one, the old file gets a "Sup
 | [0006](decisions/0006-label-sources-and-loader-cleaning.md) | Pick specific label sources, and clean each one's quirks before merging | 1 |
 | [0007](decisions/0007-dem-acquisition-and-mosaic.md) | Get the DEM from the TNM API, and mosaic newest survey first without ever resampling | 1 |
 | [0008](decisions/0008-label-alignment-check.md) | Measure label alignment against random points, with a shift search only where it means something | 2 |
+| [0009](decisions/0009-terrain-derivatives-and-seams.md) | Terrain derivatives: two-scale local relief, a provenance raster, and a seam mask | 2 |
 
 ## Phase tracker
 
@@ -34,5 +35,6 @@ A decision is never silently changed. If we change one, the old file gets a "Sup
 |-------|--------|
 | 0: setup | ✅ done: env, repo, AOI config, test suite |
 | 1: labels + DEM | ✅ done: 1,370 labels, 1 m DEM mosaic, no CRS or datum offset. CGS labels sit tens of metres from their features (see 0006) |
-| 2: terrain | 🟡 alignment tool built and tested (0008); next: run it on the full mosaic, then derivatives, LRM and seam handling |
-| 3–6 | not started |
+| 2: terrain | ✅ done: alignment on the full mosaic (0008); derivatives, two-scale LRM and seam mask (0009). Dumps and pits clearly visible in the LRM. Run on the full AOI to finish |
+| 3: baseline | ⏭ next: label snapping + rule-based detector, precision@50 on the held-out block |
+| 4–6 | not started |
