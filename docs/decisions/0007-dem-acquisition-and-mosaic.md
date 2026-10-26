@@ -18,7 +18,7 @@ USGS delivers the 1 m DEM as **10 km × 10 km tiles**, named by grid cell (e.g. 
 - **Tile identity** is parsed from the title `USGS 1 Meter {zone} {xNNyNNN} {project}`. The `key` is the 10 km cell, the `project` is the LiDAR collection, and the `date` is `publicationDate`. Tiles are sorted by `(date, project)` descending, so the order is deterministic.
 - **Zone filter:** only UTM zone 13 tiles are kept. A bbox near 108°W can return zone 12 tiles, which are on a different grid.
 - **CRS acceptance:** the horizontal part of the tile CRS (3DEP tiles are often compound, *NAD83 / UTM 13N + NAVD88 height*) must be **EPSG:26913** or **EPSG:6342** (NAD83(2011) / UTM 13N). The two are realizations of the same datum about a metre or less apart here, which is below our label accuracy (tens of metres, see 0006). So EPSG:6342 tiles are **relabelled** as 26913 and not resampled. Every other CRS (zone 12, WGS84 UTM, geographic) raises an error. This keeps the "EPSG:26913 everywhere" rule from [0002](0002-crs-epsg-26913.md) without paying for it in blur.
-- **Grid alignment check:** pixel size 1 × 1 m, no rotation, and the origin offset from the AOI corner a whole number of metres. Otherwise raise.
+- **Grid alignment check:** pixel size 1 × 1 m, no rotation, and the origin offset from the AOI corner a whole number of metres, **to within 1 mm** (`GRID_TOL_M`). Otherwise raise. The tolerance comes from real data: see *First run* below.
 - **Mosaic algorithm (priority fill):** output blocks are 1024 × 1024 px. For each block, read the matching window from each tile in priority order, and copy pixels only where the block is still nodata and the tile has valid data. Stop early once the block is full. Memory stays at a few MB per block regardless of AOI size. A naive `rasterio.merge` of 9+ tiles loads the whole 1.7 GB mosaic into RAM at once.
 - **Output:** float32 GeoTIFF, nodata −999999 (3DEP's own value), 512 px internal tiles, DEFLATE with floating-point predictor, BigTIFF if needed. Elevations are metres above **NAVD88**. The vertical datum doesn't matter for terrain shape, since every derivative we compute is relative.
 - **Downloads** go to `<name>.part` and are renamed when complete, so a file under its final name is always whole. Re-runs skip finished tiles, which means an interrupted download just picks up where it stopped.
@@ -40,6 +40,21 @@ USGS delivers the 1 m DEM as **10 km × 10 km tiles**, named by grid cell (e.g. 
 - Tests: `tests/acquire/test_dem.py`. They fake the API and the downloads, and use synthetic GeoTIFFs to cover newest-wins/older-fills, uncovered area as nodata, 6342 accepted, zone 12 / WGS84 UTM / geographic refused, and a half-metre misalignment refused
 
 **Unverified until your first run:** the API's live response format couldn't be checked from Claude's environment, because the API host isn't reachable from there. The parser follows the documented fields (`title`, `downloadURL`, `publicationDate`, `format`, `sizeInBytes`). Run `--dry-run` first. If it lists tiles with sensible dates and sizes, the format is confirmed.
+
+## First run (2026-10-25)
+
+The live API returned **20 tiles over 9 cells, 3.95 GB**, from four surveys. That confirmed the parser against the real response:
+
+| Project | Published | Notes |
+|---|---|---|
+| UT_COUTAML_D24 | 2026-06-30 | 1 cell, partial (~21% of its tile) |
+| CO_ArapahoRooseveltPikeNF_D23 | 2026-03-20 | 9 cells, but some tiles are nearly empty (~0–1% valid at the west edge) |
+| CO_CameronPeakWildfire_2021_D21 | 2022-11-03 | 1 cell, partial (~10%) |
+| CO_DRCOG_2020_B20 | 2022-02-10 | all 9 cells, full coverage |
+
+**The "newest wins, older fills gaps" rule matters here.** If we used only the newest survey per cell, much of the AOI would be holes. The full-coverage 2020 DRCOG survey fills them.
+
+**The first mosaic attempt failed the grid check, correctly but for the wrong reason.** Real tile origins look like `459993.99996660`, which is about 30 µm off a whole metre. That's float noise in the GeoTIFF tags, not a different grid. The original tolerance (1 µm) was too strict, so it's now 1 mm. That's 1/1000 of a pixel, and a test proves that a 1 cm offset is still refused. All four inspected tiles are `NAD83 / UTM zone 13N` (EPSG:26913), 10,012 × 10,012 px, with a 6 m overlap on each side.
 
 ## The Phase 1 "done when" check (QGIS)
 

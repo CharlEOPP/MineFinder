@@ -30,3 +30,8 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-ra"
+filterwarnings = [
+  # rasterio's own internals still use Affine `*`; newer `affine` prefers `@`.
+  # Narrow on purpose: only this message, only from rasterio. Our code stays loud.
+  "ignore:Use `@` matmul instead of `\\*` mul operator:PendingDeprecationWarning:rasterio",
+]

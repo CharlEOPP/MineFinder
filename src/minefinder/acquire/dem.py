@@ -33,6 +33,10 @@ NODATA = -999999.0  # 3DEP's own nodata value for 1 m DEMs
 # of metres), so tiles are relabelled, never resampled. See decision 0007.
 ACCEPTED_EPSG = {26913, 6342}
 
+# Origin offsets below this are float noise in the file, not a different grid
+# (observed: ~3e-5 m on real tiles). 1 mm is 1/1000 of a pixel.
+GRID_TOL_M = 1e-3
+
 BLOCK = 1024  # mosaic block size in pixels; keeps memory to a few MB per tile per block
 
 _TITLE = re.compile(r"1 Meter (\d+) (x\d+y\d+) (\S+)")
@@ -152,7 +156,9 @@ def _check_tile(src: rasterio.DatasetReader, aoi: AOI) -> None:
     t = src.transform
     minx, _, _, maxy = aoi.extent.bounds
     def whole_metres(v: float) -> bool:
-        return abs(v - round(v)) < 1e-6
+        # Real 3DEP origins carry ~1e-5 m of float noise from the GeoTIFF tags.
+        # Anything under GRID_TOL_M is the same grid; reads snap to whole pixels.
+        return abs(v - round(v)) < GRID_TOL_M
 
     on_grid = (
         np.isclose(t.a, 1.0) and np.isclose(t.e, -1.0) and t.b == 0 and t.d == 0

@@ -208,6 +208,20 @@ def test_mosaic_refuses_other_crs(tmp_path, small_aoi, bad_crs):
         mosaic([a], small_aoi, tmp_path / "dem.tif")
 
 
+def test_mosaic_snaps_float_noise_in_tile_origin(tmp_path, small_aoi):
+    # Real 3DEP tiles store origins like 459993.99996660 (~30 micrometres off a whole
+    # metre): float noise in the GeoTIFF tags, not a different grid. Snap, don't refuse.
+    a = write_tile(tmp_path / "a.tif", X0 - 3.3e-5, Y0 + 100 + 4.1e-5, 100, 100, 2000.0)
+    with rasterio.open(mosaic([a], small_aoi, tmp_path / "dem.tif")) as ds:
+        assert (ds.read(1) == 2000.0).all()
+
+
+def test_mosaic_refuses_centimetre_offset(tmp_path, small_aoi):
+    a = write_tile(tmp_path / "a.tif", X0 + 0.01, Y0 + 100, 100, 100, 2000.0)
+    with pytest.raises(ValueError, match="grid"):
+        mosaic([a], small_aoi, tmp_path / "dem.tif")
+
+
 def test_mosaic_refuses_misaligned_grid(tmp_path, small_aoi):
     # Half-metre offset would need resampling, which blurs small pits. Fail loudly instead.
     a = write_tile(tmp_path / "a.tif", X0 + 0.5, Y0 + 100.5, 100, 100, 2000.0)
