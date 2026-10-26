@@ -26,11 +26,13 @@ A decision is never silently changed. If we change one, the old file gets a "Sup
 | [0005](decisions/0005-repo-layout-and-what-never-gets-committed.md) | Use a src-layout package, keep data out of git, and keep candidate coordinates private | 0 |
 | [0006](decisions/0006-label-sources-and-loader-cleaning.md) | Pick specific label sources, and clean each one's quirks before merging | 1 |
 | [0007](decisions/0007-dem-acquisition-and-mosaic.md) | Get the DEM from the TNM API, and mosaic newest survey first without ever resampling | 1 |
+| [0008](decisions/0008-label-alignment-check.md) | Measure label alignment against random points, with a shift search only where it means something | 2 |
 
 ## Phase tracker
 
 | Phase | Status |
 |-------|--------|
 | 0: setup | ✅ done: env, repo, AOI config, test suite |
-| 1: labels + DEM | 🟡 labels done (1,370 in `data/interim/labels.gpkg`). DEM code written and tested; still to do: first real download, then the QGIS overlay check (steps in 0007) |
-| 2–6 | not started |
+| 1: labels + DEM | ✅ done: 1,370 labels, 1 m DEM mosaic, no CRS or datum offset. CGS labels sit tens of metres from their features (see 0006) |
+| 2: terrain | 🟡 alignment tool built and tested (0008); next: run it on the full mosaic, then derivatives, LRM and seam handling |
+| 3–6 | not started |

@@ -102,6 +102,35 @@ By split: **train 1,090 · test 274 · buffer 6** (buffer labels are discarded, 
 - `src/minefinder/acquire/labels.py`: `normalize(..., type_col=)` and `feature_type` in the merged schema
 - Tests: `tests/acquire/test_load_labels.py`, which has one test per finding above, using synthetic files in each real format, plus a real-data smoke test that skips when `data/raw/` is missing
 
+## Positional accuracy check against the DEM (Phase 1 close-out, 2026-10-26)
+
+**Question:** do labels sit *on* their landforms? Visual checks at 1:4,000 can't tell, so we measured it.
+
+**Method** (one 10 km cell, x45y444, 2020 DRCOG DEM):
+1. Compute a local relief model: elevation minus its 31 m moving average. A pit comes out negative.
+2. Give each point a "pit score": the depth of the deepest spot within 4 m of it.
+3. Compare each label group against 3,000 random points in the same tile (score 0.26 m). The p-value is how often a random set of the same size scores at least as well.
+4. Shift each group by up to ±40 m to see whether a consistent offset would line it up.
+
+| Group | n | Score at label | p vs random | Best shift |
+|---|---|---|---|---|
+| CGS shafts/pits | 45 | 0.14 m | 0.96 (*worse* than random) | +24 E, 0 N |
+| CGS adits | 42 | 0.42 m | 0.015 | −32 E, −8 N |
+| CGS dumps | 9 | 0.30 m | 0.35 | −20 E, 0 N |
+| USMIN (all) | 5 | 0.42 m | 0.20 | −12 E, −28 N |
+| MRDS-only | 55 | 0.38 m | 0.03 | −8 E, +24 N |
+
+**What it means:**
+1. **No CRS or datum error.** The "best shift" points in different directions for every group. A datum or CRS mistake would shift *everything* the same way. This is Phase 1's pass condition.
+2. **The labels are near their features, not on them.** CGS shaft and pit labels don't sit on pits any more often than random points do, even though the hillshade clearly shows pits nearby. The likely cause is that the 1991–1999 field locations predate May 2000, when GPS Selective Availability (deliberate error, about 50–100 m) was switched off. The inventory itself describes its locations as estimated. Some shafts may also have been backfilled or reclaimed since.
+3. The sample is small (one cell, very few USMIN points) and the best-shift search overfits small groups. Treat the numbers as rough, not precise.
+
+**Consequences for later phases** (to formalize when we get there):
+- **Phase 2:** label snapping. Move each label to the strongest matching landform within about 50 m, using LRM pits for shafts and notch plus bench for adits, and keep the original location. Measure the snapping on the train region only.
+- **Phase 3/4:** training targets must tolerate this offset, e.g. treat anything within the snap radius as positive, or use soft labels.
+- **Evaluation:** precision@N needs a **match radius** (about 30–50 m) when deciding whether a candidate "is" a known mine. Same for subtracting known sites in Phase 5.
+- **Rerun this test on the full mosaic** as the first Phase 2 task, as a proper tested tool (`review/alignment.py`), to get usable USMIN numbers.
+
 ## Revisit when
 
 - **Phase 2 label quality.** MRDS-only labels (409, about 30%) are weak. Decide whether to snap them to the nearest LRM landform within about 250 m, down-weight them, or drop them. Measure on the train region only.

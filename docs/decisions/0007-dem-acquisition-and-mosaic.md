@@ -65,6 +65,14 @@ The live API returned **20 tiles over 9 cells, 3.95 GB**, from four surveys. Tha
 
 If USMIN and CGS points line up with landforms, Phase 1 is done.
 
+## QGIS check findings (2026-10-26)
+
+- **A grid lattice appeared in the hillshade. It's a QGIS display artifact, not data.** With nearest-neighbour resampling slightly past 1:1 zoom, QGIS repeats a row or column every so often, and the hillshade draws each repeat as a straight line. The fix is Symbology → Resampling → **Bilinear** for both zoomed in and zoomed out. Hillshades rendered directly from the raw 2026 and 2020 tiles show no lattice.
+- **Surveys agree:** in cell x45y444, the 2026 ArapahoRoosevelt survey minus the 2020 DRCOG survey has a median difference of **+0.10 m** (IQR 0.06–0.13 m).
+- **Survey patch edges are visible as straight lines in the hillshade** where a partial newer survey meets an older fill, e.g. the UT_COUTAML_D24 edge in x46y444. The step is about 0.1 m, but a local-relief model will register it as a linear feature. **Phase 2 must handle it**, either by feathering the overlap at patch edges or by masking a few metres either side of seams during detection.
+- The 2020 DRCOG data has faint horizontal flight-line streaks. They're normal for LiDAR. Watch for them as false positives in Phase 3.
+- **TODO (dem.py):** build overviews (pyramids) at mosaic time, so QGIS draws the 645 MB DEM quickly when zoomed out.
+
 ## Revisit when
 
 - **Phase 2+:** switch to the LiDAR point clouds (LAZ/COPC with PDAL) to make our own ground model with finer filtering.
