@@ -17,6 +17,7 @@ def pts(source, coords, crs=UTM):
             "source": source,
             "source_id": [f"{source}-{i}" for i in range(len(coords))],
             "name": [f"{source} mine {i}" for i in range(len(coords))],
+            "feature_type": "adit",
         },
         geometry=[Point(c) for c in coords],
         crs=crs,
@@ -37,6 +38,13 @@ def test_normalize_schema_and_crs():
     assert out.iloc[0]["source"] == "mrds"
     assert out.iloc[0]["source_id"] == "10"
     assert out.iloc[0]["name"] == "Big Five"
+    assert out.iloc[0]["feature_type"] is None  # no type_col given
+
+
+def test_normalize_carries_feature_type():
+    g = raw(["10"], ["Big Five"], [Point(X0, Y0)], UTM).assign(KIND=["Adit"])
+    out = normalize(g, "usmin", "DEP_ID", "SITE_NAME", type_col="KIND")
+    assert out.iloc[0]["feature_type"] == "adit"  # lower-cased for consistency across sources
 
 
 def test_normalize_reprojects_from_geographic():
@@ -109,6 +117,12 @@ def test_merged_location_comes_from_highest_priority_source():
     usmin = pts("usmin", [(X0 + 5_000, Y0 + 5_000)])
     p = merge_labels([mrds, usmin], dedupe_m=50).geometry.iloc[0]
     assert (p.x, p.y) == (X0 + 5_000, Y0 + 5_000)
+
+
+def test_merged_feature_type_comes_from_anchor():
+    usmin = pts("usmin", [(X0 + 5_000, Y0 + 5_000)]).assign(feature_type="mine shaft")
+    mrds = pts("mrds", [(X0 + 5_010, Y0 + 5_000)]).assign(feature_type="past producer")
+    assert merge_labels([mrds, usmin]).iloc[0]["feature_type"] == "mine shaft"
 
 
 def test_merged_name_comes_from_highest_priority_source():

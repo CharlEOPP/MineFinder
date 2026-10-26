@@ -55,5 +55,6 @@ It's big enough to catch the normal disagreement between USMIN and the state inv
 
 ## Revisit when
 
-- Real data shows lots of USMIN↔state pairs between 50 and 100 m. Then measure the distribution and pick the threshold from it.
-- **Proposed brief change**: record source priority and the cross-source-only rule in `minefinder-brief.md`. This is pending your approval.
+- Real data shows lots of USMIN↔state pairs between 50 and 100 m. First measurement (0006): only 3% of CGS records fall between 50 and 100 m of a USMIN point, so no change for now.
+- Recorded in `minefinder-brief.md` (approved 2026-10-25).
+- **Update (0006):** the merged schema now also carries `feature_type` (from the anchor record). Real data supports the 50 m radius: USMIN scale duplicates have a median gap of 11 m and a maximum of 41 m. See [0006](0006-label-sources-and-loader-cleaning.md).

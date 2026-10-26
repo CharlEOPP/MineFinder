@@ -10,12 +10,21 @@ from minefinder.aoi import AOI, PROJECT_CRS
 # Highest location quality first. MRDS locations are often coarse, so it is last.
 SOURCE_PRIORITY: tuple[str, ...] = ("usmin", "co_inactive", "mrds")
 
-NORMALIZED_COLUMNS = ["source", "source_id", "name", "geometry"]
-MERGED_COLUMNS = ["label_id", "name", "sources", "n_sources", "geometry"]
+NORMALIZED_COLUMNS = ["source", "source_id", "name", "feature_type", "geometry"]
+MERGED_COLUMNS = ["label_id", "name", "feature_type", "sources", "n_sources", "geometry"]
 
 
-def normalize(gdf: gpd.GeoDataFrame, source: str, id_col: str, name_col: str) -> gpd.GeoDataFrame:
-    """Return one source in the common schema, as points in EPSG:26913."""
+def normalize(
+    gdf: gpd.GeoDataFrame,
+    source: str,
+    id_col: str,
+    name_col: str,
+    type_col: str | None = None,
+) -> gpd.GeoDataFrame:
+    """Return one source in the common schema, as points in EPSG:26913.
+
+    feature_type is lower-cased so "Adit" (USMIN) and "adit" (CGS) compare equal.
+    """
     if source not in SOURCE_PRIORITY:
         raise ValueError(f"unknown source {source!r}; expected one of {SOURCE_PRIORITY}")
     if gdf.crs is None:
@@ -34,6 +43,12 @@ def normalize(gdf: gpd.GeoDataFrame, source: str, id_col: str, name_col: str) ->
             "source": source,
             "source_id": gdf[id_col].astype(str).to_numpy(),
             "name": gdf[name_col].to_numpy(),
+            "feature_type": (
+                gdf[type_col].astype("string").str.strip().str.lower().astype(object)
+                .where(gdf[type_col].notna(), None).to_numpy()
+                if type_col
+                else None
+            ),
         },
         geometry=geom.to_numpy(),
         crs=PROJECT_CRS,
@@ -83,6 +98,7 @@ def merge_labels(
                 {
                     "label_id": f"{row.source}:{row.source_id}",
                     "name": row.name,
+                    "feature_type": row.feature_type,
                     "sources": {row.source},
                     "geometry": row.geometry,
                 }
@@ -92,6 +108,7 @@ def merge_labels(
         {
             "label_id": [c["label_id"] for c in clusters],
             "name": [c["name"] for c in clusters],
+            "feature_type": [c["feature_type"] for c in clusters],
             "sources": [tuple(sorted(c["sources"])) for c in clusters],
             "n_sources": [len(c["sources"]) for c in clusters],
         }

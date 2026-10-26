@@ -50,4 +50,4 @@ From the project instructions: **no result claims without precision@N on the hel
 
 - Chip size or context window changes, since the buffer has to grow with it.
 - We add a validation block for tuning (Phase 4).
-- **Proposed brief change**: record the 256 m buffer and the discard-on-straddle rule in `minefinder-brief.md`. This is pending your approval.
+- Recorded in `minefinder-brief.md` (approved 2026-10-25).
