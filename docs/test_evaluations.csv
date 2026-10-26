@@ -1,0 +1,2 @@
+utc,detector,params_hash,params,p@25@25m,p@50@25m,p@100@25m,p@25@40m,p@50@40m,p@100@40m,p@25@60m,p@50@60m,p@100@60m
+2026-10-26T22:54:03+00:00,baseline,d4cf8e7f9c,"{""dump_max_area"": 8000, ""dump_max_height"": 4.0, ""dump_min_area"": 50, ""dump_min_height"": 2.0, ""dump_weight"": 1.0, ""halo_guard"": true, ""max_elongation"": 2.0, ""pit_max_area"": 400, ""pit_min_area"": 4, ""pit_min_depth"": 0.3}",0.08,0.04,0.04,0.16,0.08,0.07,0.16,0.08,0.08

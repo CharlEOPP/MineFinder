@@ -1,0 +1,10 @@
+dump_max_area: 8000
+dump_max_height: 4.0
+dump_min_area: 50
+dump_min_height: 2.0
+dump_weight: 1.0
+halo_guard: true
+max_elongation: 2.0
+pit_max_area: 400
+pit_min_area: 4
+pit_min_depth: 0.3

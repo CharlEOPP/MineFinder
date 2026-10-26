@@ -72,3 +72,4 @@
 - **Adits:** score them with a *notch + bench* signature (a slope break with a flat bench downhill) instead of "nearest low". That's the Phase 2 detector's job, and the alignment check can reuse it.
 - **Label snapping (Phase 2):** if USMIN shows a real but small offset on the full mosaic, snapping radius and direction come from this report (train split only).
 - **Survey seams:** random points that land on a seam line score as weak lows. That's negligible now. Recheck after seam handling.
+- **Update (0010):** snapping moved to Phase 4 training targets only. Test labels are never snapped, because that would pull them toward the detector's answers. Evaluation uses a 40 m match radius instead.

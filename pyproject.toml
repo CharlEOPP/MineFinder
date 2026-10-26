@@ -16,6 +16,7 @@ dependencies = [
   # and never pulls a pip rasterio wheel with its own copy of GDAL. See decision 0001.
   "rasterio>=1.4",
   "requests>=2.31",
+  "scipy>=1.11",   # connected components for the baseline detector (0010); install via mamba
 ]
 
 [project.optional-dependencies]

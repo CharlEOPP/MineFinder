@@ -14,6 +14,7 @@ dependencies:
   - pyproj>=3.6
   - pyyaml
   - requests
+  - scipy
   - whitebox            # WhiteboxTools Python frontend (downloads the binary on first use)
   - richdem
   - pytorch             # Phase 4; CPU build is fine for chips at AOI scale

@@ -73,3 +73,4 @@ On real data, one 10 km cell builds in about 2.5 min (mosaic 43 s, derivatives 1
 - **Detection shows halos** around large dumps in `lrm_small`: switch to Hesse's purged-surface LRM.
 - **Masking removes known mines:** count labels inside `seam_mask`. If it's more than a few percent, try feathering across seams instead.
 - **Point clouds (later):** a ground model rebuilt from LAZ may make seams disappear, because both surveys can be co-registered first.
+- **Update (0010):** the baseline uses `lrm_small` for pits and `lrm_large` for dumps as planned here. The optional halo guard was tuned *off* on the train cell, because depth and area thresholds already remove halo artifacts.

@@ -28,6 +28,7 @@ A decision is never silently changed. If we change one, the old file gets a "Sup
 | [0007](decisions/0007-dem-acquisition-and-mosaic.md) | Get the DEM from the TNM API, and mosaic newest survey first without ever resampling | 1 |
 | [0008](decisions/0008-label-alignment-check.md) | Measure label alignment against random points, with a shift search only where it means something | 2 |
 | [0009](decisions/0009-terrain-derivatives-and-seams.md) | Terrain derivatives: two-scale local relief, a provenance raster, and a seam mask | 2 |
+| [0010](decisions/0010-baseline-detector-and-evaluation.md) | A rule-based baseline, and how every detector gets scored | 3 |
 
 ## Phase tracker
 
@@ -36,5 +37,6 @@ A decision is never silently changed. If we change one, the old file gets a "Sup
 | 0: setup | ✅ done: env, repo, AOI config, test suite |
 | 1: labels + DEM | ✅ done: 1,370 labels, 1 m DEM mosaic, no CRS or datum offset. CGS labels sit tens of metres from their features (see 0006) |
 | 2: terrain | ✅ done: alignment on the full mosaic (0008); derivatives, two-scale LRM and seam mask (0009). Dumps and pits clearly visible in the LRM. Run on the full AOI to finish |
-| 3: baseline | ⏭ next: label snapping + rule-based detector, precision@50 on the held-out block |
-| 4–6 | not started |
+| 3: baseline | ✅ done: **test P@50 = 0.08 @ 40 m (3.7× random)**, the number to beat (0010) |
+| 4: model | ⏭ next: training chips + snapped train targets, then a chip classifier |
+| 5–6 | not started |
